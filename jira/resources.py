@@ -751,8 +751,20 @@ class Status(Resource):
 class User(Resource):
     """A JIRA user."""
 
-    def __init__(self, options, session, raw=None):
-        Resource.__init__(self, 'user?username={0}', options, session)
+    def __init__(self, options, session, raw=None, use_account_id=False):
+
+        # On GDPR compliant sites, we can't rely on the username always being
+        # available to retrieve information about a user, so we'll
+        # allow to load the User resource via the v3 endpoint that
+        # loads a user based on the account id.
+        if use_account_id:
+            options = options.copy()
+            options['rest_api_version'] = 3
+            path = 'user?accountId={0}'
+        else:
+            path = 'user?username={0}'
+
+        Resource.__init__(self, path, options, session)
         if raw:
             self._parse_raw(raw)
 
