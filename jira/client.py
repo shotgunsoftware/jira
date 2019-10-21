@@ -2164,6 +2164,7 @@ class JIRA(object):
 
         :param id: ID of the user to get
         :param expand: extra information to fetch inside each resource
+        :param str payload: Name of the user field to match against.
         """
         user = User(self._options, self._session, payload=payload)
         params = {}
