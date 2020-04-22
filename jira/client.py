@@ -2598,7 +2598,8 @@ class JIRA(object):
         :rtype: ResultList
         """
         params = {
-            'username': username}
+            'query': username
+        }
         if project is not None:
             params['project'] = project
         if issueKey is not None:
