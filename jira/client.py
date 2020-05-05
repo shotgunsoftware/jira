@@ -2597,8 +2597,14 @@ class JIRA(object):
 
         :rtype: ResultList
         """
-        params = {
-            'query': username}
+
+        # "username" is deprecated for the Jira Cloud API and "query" doesn't work for Jira Server (it returns all users)
+        params = {}
+        if self.deploymentType == 'Cloud':
+            params['query'] = username
+        else:
+            params['username'] = username
+
         if project is not None:
             params['project'] = project
         if issueKey is not None:
