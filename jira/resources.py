@@ -836,7 +836,7 @@ class User(Resource):
     """A JIRA user."""
 
     def __init__(self, options, session, raw=None):
-        Resource.__init__(self, 'user?username={0}', options, session)
+        Resource.__init__(self, 'user?accountId={0}', options, session)
         if raw:
             self._parse_raw(raw)
 
