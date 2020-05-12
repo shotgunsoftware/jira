@@ -833,7 +833,7 @@ class StatusCategory(Resource):
 
 
 class User(Resource):
-    """A JIRA Cloud user."""
+    """A JIRA user."""
 
     def __init__(self, options, session, raw=None):
         # The Cloud API has changed and does not match the Server API anymore. We need
