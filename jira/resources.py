@@ -836,17 +836,29 @@ class User(Resource):
     """A JIRA user."""
 
     def __init__(self, options, session, raw=None):
-        Resource.__init__(self, 'user?username={0}', options, session)
+        # The Cloud API has changed and does not match the Server API anymore. We need
+        # to treat the users from different types of server differently
+        self._deployment_type = options.get("deployment_type", "Cloud")
+        resource = "user?accountId={0}" if self._deployment_type == "Cloud" else "user?username={0}"
+        Resource.__init__(self, resource, options, session)
         if raw:
             self._parse_raw(raw)
 
+    @property
+    def _user_id_field(self):
+        return "accountId" if hasattr(self, "accountId") else "name"
+
+    @property
+    def user_id(self):
+        return getattr(self, self._user_id_field)
+
     def __hash__(self):
         """Hash calculation."""
-        return hash(str(self.name))
+        return hash(str(self.user_id))
 
     def __eq__(self, other):
         """Comparison."""
-        return str(self.name) == str(other.name)
+        return str(self.user_id) == str(self.user_id)
 
 
 class Group(Resource):

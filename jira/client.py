@@ -1508,19 +1508,24 @@ class JIRA(object):
 
     # non-resource
     @translate_resource_args
-    def assign_issue(self, issue, assignee):
+    def assign_issue(self, issue, assignee_id):
         """Assign an issue to a user. None will set it to unassigned. -1 will set it to Automatic.
 
         :param issue: the issue ID or key to assign
         :type issue: int or str
-        :param assignee: the user to assign the issue to
-        :type assignee: str
+        :param assignee_id: the username (Jira Server) or accountId (Jira Cloud) of the user to assign the issue to
+        :type assignee_id: str
 
         :rtype: bool
         """
         url = self._options['server'] + \
             '/rest/api/latest/issue/' + str(issue) + '/assignee'
-        payload = {'name': assignee}
+        payload = {}
+        if self.deploymentType == "Cloud":
+            payload['accountId']= assignee_id
+        else:
+            payload["name"] = assignee_id
+
         r = self._session.put(
             url, data=json.dumps(payload))
         raise_on_error(r)
@@ -1845,26 +1850,30 @@ class JIRA(object):
         return self._find_for_resource(Watchers, issue)
 
     @translate_resource_args
-    def add_watcher(self, issue, watcher):
+    def add_watcher(self, issue, watcher_id):
         """Add a user to an issue's watchers list.
 
         :param issue: ID or key of the issue affected
-        :param watcher: username of the user to add to the watchers list
+        :param watcher_id: username (Jira Server) or accountId (Jira Cloud) of the user to add to the watchers list
         """
         url = self._get_url('issue/' + str(issue) + '/watchers')
         self._session.post(
-            url, data=json.dumps(watcher))
+            url, data=json.dumps(watcher_id))
 
     @translate_resource_args
-    def remove_watcher(self, issue, watcher):
+    def remove_watcher(self, issue, watcher_id):
         """Remove a user from an issue's watch list.
 
         :param issue: ID or key of the issue affected
-        :param watcher: username of the user to remove from the watchers list
+        :param watcher_id: username (Jira Server) or accountId (Jira Cloud) of the user to remove from the watchers list
         :rtype: Response
         """
         url = self._get_url('issue/' + str(issue) + '/watchers')
-        params = {'username': watcher}
+        params = {}
+        if self.deploymentType == "Cloud":
+            params['accountId']= watcher_id
+        else:
+            params["username"] = watcher_id
         result = self._session.delete(url, params=params)
         return result
 
@@ -2539,6 +2548,7 @@ class JIRA(object):
 
         :rtype: User
         """
+        self._options["deployment_type"] = self.deploymentType
         user = User(self._options, self._session)
         params = {}
         if expand is not None:
@@ -2597,8 +2607,14 @@ class JIRA(object):
 
         :rtype: ResultList
         """
-        params = {
-            'username': username}
+
+        # "username" is deprecated for the Jira Cloud API and "query" doesn't work for Jira Server (it returns all users)
+        params = {}
+        if self.deploymentType == 'Cloud':
+            params['query'] = username
+        else:
+            params['username'] = username
+
         if project is not None:
             params['project'] = project
         if issueKey is not None:
