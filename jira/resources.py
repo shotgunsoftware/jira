@@ -858,7 +858,7 @@ class User(Resource):
 
     def __eq__(self, other):
         """Comparison."""
-        return str(self.user_id) == str(self.user_id)
+        return str(self.user_id) == str(other.user_id)
 
 
 class Group(Resource):
